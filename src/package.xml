@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>EditRecordAddressCtrl</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>GoogleMapVFCtrl</members>
+        <name>ApexPage</name>
+    </types>
+    <types>
+        <members>EditAccountAddress</members>
+        <members>EditRecordAddress</members>
+        <members>GoogleMap</members>
+        <name>AuraDefinitionBundle</name>
+    </types>
+    <types>
+        <members>jQuery224</members>
+        <name>StaticResource</name>
+    </types>
+    <version>43.0</version>
+</Package>

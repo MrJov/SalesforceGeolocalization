@@ -1,0 +1,98 @@
+<apex:page id="GoogleMapVFCtrl" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0" showHeader="false" standardStylesheets="false">
+  <apex:includescript value="{!URLFOR($Resource.jQuery224)}"/>
+  <html>
+    <!-- <head>
+      <link rel="stylesheet" href="//developers.google.com/maps/documentation/javascript/demos/demos.css"/>
+    </head> -->
+    <body>
+      
+      <div id="map"></div>
+
+      <script>
+        var lexOrigin = 'https://{!$CurrentPage.parameters.lcHost}';
+
+        //Data for Google map
+        var data;
+        // var handlerIsActive = false;
+        
+        //Send message to LC
+        function sendToLC(message) {
+          if(typeof(lexOrigin) != 'undefined'){
+            parent.postMessage(message, lexOrigin);
+          }
+        }
+
+        var handleEvent =  function(event) {
+          // Handle incoming message calling the right function
+          data = JSON.parse(event.data);
+          var script=document.getElementById("searchAddressScript");
+          if(!script){
+            loadScript();
+          } else {
+            if(typeof(JSON.parse(event.data).predictAddress) != 'undefined' && JSON.parse(event.data).predictAddress === true){
+              // if(script==undefined || script == null || !handlerIsActive){
+              //   handlerIsActive = true;
+              //   var script = document.createElement("script");
+              //   script.id = "searchAddressScript";
+              //   script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyAj979683GC95W51kD7ToRdwm4Q-J3sisE&libraries=places&callback=getPlaces";
+              //   document.getElementsByTagName("head")[0].appendChild(script);
+              // } else{
+                getPlaces();
+              // }
+            } else if(typeof(JSON.parse(event.data).geolocateAddress) != 'undefined' && JSON.parse(event.data).geolocateAddress === true){
+              getGeolocalizationData();
+            }
+          }
+        }
+        
+        if(document.getElementById("searchAddressScript") == undefined ){
+          loadScript();
+          window.addEventListener("message", handleEvent, false);          
+        }
+
+        function loadScript(){
+          var script = document.createElement("script");
+          script.id = "searchAddressScript";
+          script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyAj979683GC95W51kD7ToRdwm4Q-J3sisE&libraries=places&callback=getPlaces";
+          document.getElementsByTagName("head")[0].appendChild(script);
+        }
+
+        // if(!handlerIsActive)
+        //   window.addEventListener("message", handleEvent, false);
+
+        function getPlaces(){
+          var inputVal = data.address;
+          var options = { types : ['geocode', '(regions)'] };
+          var displaySuggestions = function(predictions, status){
+            var places = [];
+            if (status != google.maps.places.PlacesServiceStatus.OK) {
+              return;
+            }
+            predictions.forEach(function(prediction) {
+              places.push(prediction);
+            });
+            sendToLC({'state' : 'PREDICTED', 'places' : places})
+          }
+
+          var service = new google.maps.places.AutocompleteService();
+          //service.getQueryPredictions({ input : inputVal, options : options }, displaySuggestions);
+          service.getPlacePredictions({ input : inputVal }, displaySuggestions);
+        }
+
+        function getGeolocalizationData(){
+          var inputVal = data.address;
+          console.log('VF Ctrl -> getGeolocalizationData() | inputVal: ', inputVal)          
+          var res = $.get("https://maps.googleapis.com/maps/api/geocode/json?place_id="+inputVal+"&key=AIzaSyAj979683GC95W51kD7ToRdwm4Q-J3sisE",
+            function(data, status){
+              var place = data["results"];
+              sendToLC({'state' : 'GEOCODED', 'place' : place})
+            }
+          );
+        }
+
+        var vfHost = "{!LEFT($CurrentPage.URL,FIND('/',$CurrentPage.URL,9))}";
+        sendToLC({'state':'LOADED', 'vfHost': vfHost});
+      </script>
+    </body>
+  </html>
+</apex:page>

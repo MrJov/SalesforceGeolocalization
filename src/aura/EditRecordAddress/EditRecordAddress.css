@@ -1,0 +1,48 @@
+.THIS {
+}
+
+.THIS .noSidebarCell {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.THIS .pac-icon {
+    float: left;
+    margin: 10px 5px 0px 5px;
+}
+
+.THIS .pac-item {
+    line-height: 20px;
+}
+
+.THIS .pac-item-query {
+    display: block;
+}
+
+.THIS .pac-matched {
+    color: red;
+}
+
+.THIS .slds-form-element__label {
+    max-width: 200px;
+}
+
+.THIS .slds-form-element {
+    max-width: 700px;
+}
+
+.THIS .slds-input__icon-group_right{
+    display: none;
+}
+
+.THIS .copyAddressBtn {
+    width: 100%;
+}
+
+.THIS .slds-grid.slds-grid--align-space.slds-wrap {
+    width: 100%;
+}
+
+.THIS .forceStyle.desktop .viewport{
+    overflow: hidden !important;
+}

@@ -1,0 +1,22 @@
+<aura:component description="GoogleMap" access="global">
+    
+  <aura:attribute name="scriptLoaded" type="Boolean" default="false"/>
+  <aura:attribute name="address" type="String" default=""/>
+  <aura:attribute name="geoaddress" type="String" default=""/>
+  <aura:attribute name="geolocatedAddress" type="String" default=""/>
+  <aura:attribute name="vfHost" type="String" default="" />
+  <aura:attribute name="lcHost" type="String" />
+
+  <aura:method name="handleSearch" action="{!c.handleSearch}" />
+  <aura:method name="geolocateAddress" action="{!c.geolocateAddress}" />
+  
+  <!-- <aura:registerEvent name="search" type="c:SearchEvt" /> -->
+  <aura:registerEvent name="prediction" type="c:PlacePredictionEvt" />
+  <aura:registerEvent name="geolocation" type="c:PlaceGeolocationEvt" />
+
+  <!-- <aura:handler name="search" value="{!v.address}" action="{!c.handleSearch}" phase="capture"/> -->
+  <!-- <aura:handler name="geolocation" value="{!v.geoaddress}" action="{!c.geolocateAddress}" phase="capture"/> -->
+  <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+  <iframe class="slds-input" aura:id="vfFrame" src="{! '/apex/GoogleMapVFCtrl?lcHost=' + v.lcHost}"/>
+</aura:component>

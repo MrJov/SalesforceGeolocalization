@@ -1,0 +1,6 @@
+<aura:component description="EditAccountAddress" implements="flexipage:availableForAllPageTypes,force:hasRecordId,force:lightningQuickAction" access="global">
+    
+    <c:EditRecordAddress adminAddressFields="BillingStreet, BillingCity, BillingPostalCode, BillingState, BillingCountry" 
+        recordId="{!v.recordId}" sobjectType="Account" showDialog="false" showModal="false" showComponent="true"/>
+
+</aura:component>
