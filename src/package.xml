@@ -2,6 +2,13 @@
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
         <members>EditRecordAddressCtrl</members>
+        <members>GeocodeBean</members>
+        <members>GeocodeBeanTest</members>
+        <members>GeocodingAccountBatch</members>
+        <members>GeocodingAccountBatchSched</members>
+        <members>GeocodingAccountBatchSchedTest</members>
+        <members>GeocodingUtils</members>
+        <members>GeocodingUtilsTest</members>
         <name>ApexClass</name>
     </types>
     <types>
@@ -13,6 +20,10 @@
         <members>EditRecordAddress</members>
         <members>GoogleMap</members>
         <name>AuraDefinitionBundle</name>
+    </types>
+    <types>
+        <members>GoogleMapsGeocoding__c</members>
+        <name>CustomObject</name>
     </types>
     <types>
         <members>jQuery224</members>
