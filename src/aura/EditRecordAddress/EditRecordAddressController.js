@@ -1,7 +1,6 @@
 ({
     toggleDialog : function(component, event, helper) {
         helper.showHideModal(component);
-        component.set("v.cssStyle", ".forceStyle .viewport .oneHeader {z-index:0; } .slds-global-header_container {position: static;} .forceStyle.desktop .viewport{overflow:hidden}");
         if(component.get("v.showModal")){
             var dialog = component.find("normalizzaIndirizzoDialog");
             $A.util.addClass(dialog, 'slds-modal');
@@ -14,20 +13,13 @@
     
     closeDialog : function(component, event, helper) {
         helper.showHideModal(component);
-        component.set("v.cssStyle", "");
         component.set("v.showComponent", false);
 
     },
     
-    doInit : function(component, event, helper){
-        helper.getLabels(component, event, helper);
-        helper.getRecord(component, event, helper);
-    },
-    
     saveRecord : function(component, event, helper){
-        helper.saveRecord(component, event, helper);
+        helper.saveRecord(component, helper);
         helper.showHideModal(component);
-        component.set("v.cssStyle", "");
         component.set("v.showComponent", false);
     },
     
@@ -36,7 +28,7 @@
     },
     
     copyAdminAddress : function(component, event, helper){
-        helper.copyAdminAddress(component, event, helper);
+        helper.copyAdminAddress(component, helper);
     },
     
     triggerSearch : function(component, event, helper){
@@ -50,11 +42,13 @@
     },
     
     getPredictions : function(component, event, helper){
-        var predictions = event.getParam("prediction");
-        component.set("v.predictions", predictions);
-        component.set('v.showPredictionsList', true);
-        var input = component.find("searchText");
-        input.focus();
+        if(component.get('v.predictions').length > 0){
+            component.set('v.showPredictionsList', true);
+            var input = component.find("searchText");
+            input.focus();
+        } else {
+            component.set('v.showPredictionsList', false);
+        }
     },
     
     geolocateAddress : function(component, event, helper){
@@ -65,8 +59,7 @@
     },
     
     handleGeolocatedAddress : function(component, event, helper){
-        console.log('EditRecordAddress Component -> handleGeolocatedAddress()')
-        helper.setFields(component, event, helper);
+        helper.setFields(component, helper);
         component.set('v.showPredictionsList', false);
     },
     

@@ -7,40 +7,20 @@
         component.set("v.showDialog", "false");
     },
     
-    getLabels : function(cmp, ev, hlp){
-        var action = cmp.get("c.init");
-        var accId = cmp.get("v.recordId");
-        action.setParams({ recordId : accId });
-        action.setCallback(this, function(response){
-            var status = response.getState();
-            if(status === "SUCCESS"){
-                var labels = response.getReturnValue();
-                var fields = Object.keys(labels);
-                for(var i=0; i<fields.length; i++){
-                    cmp.set("v."+fields[i], labels[fields[i]]);
-                }
-            }
-            else{
-                hlp.showToast(status, response.getError(), "error");
-            }
-        });
-        $A.enqueueAction(action);
-    },
-    
-    copyAdminAddress : function(cmp, ev, hlp){
-        var action = cmp.get("c.getAdminAddress");
-        var accId = cmp.get("v.recordId");
-        var fields = cmp.get("v.adminAddressFields");
+    copyAdminAddress : function(component, helper){
+        var action = component.get("c.getAdminAddress");
+        var accId = component.get("v.recordId");
+        var fields = component.get("v.adminAddressFields");
         action.setParams({ recordId : accId, fieldsString: fields });
         action.setCallback(this, function(response){
             var status = response.getState();
             if(status === "SUCCESS"){
                 var result = response.getReturnValue();
                 if(result.startsWith('ERRORE')){
-                    hlp.showToast('ERROR', result, "error");
+                    helper.showToast('ERROR', result, "error");
                 } else {
-                    cmp.set("v.adminAddress", result);
-                    var action = cmp.get("c.triggerSearch");
+                    component.set("v.adminAddress", result);
+                    var action = component.get("c.triggerSearch");
                     action.setCallback(this, function(result){
                         if(result.getState() == "SUCCESS"){
                             var res = result.getReturnValue();
@@ -50,36 +30,14 @@
                 }
             }
             else{
-                hlp.showToast(status, response.getError(), "error");
+                helper.showToast(status, response.getError(), "error");
             }
         });
         $A.enqueueAction(action);
     },
     
-    getRecord : function(cmp, ev, hlp){
-        var record = cmp.get("v.record");
-        if(record == undefined || record == null){
-            var action = cmp.get("c.getRecord");
-            var recId = cmp.get("v.recordId");
-            var addressFields = cmp.get("v.adminAddressFields");
-            action.setParams({recordId : recId, fieldsString: addressFields});
-            action.setCallback(this, function(response){
-                var status = response.getState();
-                if(status === "SUCCESS"){
-                    var record = JSON.parse(response.getReturnValue());
-                    cmp.set("v.record", record);
-                }
-                else{
-                    hlp.showToast(status, response.getError(), "error");
-                }
-            });
-            $A.enqueueAction(action);
-        }
-    },
-    
-    setFields : function(component, event, helper){
-        // var place = event.getParam("geolocation")[0];
-        var place = component.get("v.geolocatedAddress");
+    setFields : function(component, helper){
+        var place = component.get("v.geolocatedAddress")[0];
         var componentForm = {
             street_number: 'short_name',
             route: 'long_name',
@@ -90,61 +48,64 @@
             postal_code: 'short_name'
         };
         
-        var fieldMap = {};
-        fieldMap['street_number']='NormalizzatoCivico__c';
-        fieldMap['route']='NormalizzatoIndirizzo__c';
-        fieldMap['locality']='NormalizzatoLocalita__c';
-        fieldMap['administrative_area_level_1']='NormalizzatoAmministrativoLiv1__c';
-        fieldMap['administrative_area_level_2']='NormalizzatoAmministrativoLiv2__c';
-        fieldMap['country']='NormalizzatoCodiceNazione__c';
-        fieldMap['postal_code']='NormalizzatoCap__c';
-        
-        component.set("v.record.NormalizzatoCivico__c", '');
-        component.set("v.record.NormalizzatoIndirizzo__c", '');
-        component.set("v.record.NormalizzatoLocalita__c", '');
-        component.set("v.record.NormalizzatoAmministrativoLiv1__c", '');
-        component.set("v.record.NormalizzatoAmministrativoLiv2__c", '');
-        component.set("v.record.NormalizzatoCodiceNazione__c", '');
-        component.set("v.record.NormalizzatoCap__c", '');
-        component.set("v.record.NormalizzatoIndirizzoEsteso__c", '');
-        component.set("v.record.NormalizzatoCoordinate__Latitude__s", null);
-        component.set("v.record.NormalizzatoCoordinate__Longitude__s", null);
+        var fieldMap = {
+            street_number: 'NormalizzatoCivico__c',
+            route: 'NormalizzatoIndirizzo__c',
+            locality: 'NormalizzatoLocalita__c',
+            administrative_area_level_1: 'NormalizzatoAmministrativoLiv1__c',
+            administrative_area_level_2: 'NormalizzatoAmministrativoLiv2__c',
+            country: 'NormalizzatoCodiceNazione__c',
+            postal_code: 'NormalizzatoCap__c'
+        };
+
+        var record = {
+            Id: component.get('v.recordId'),
+            NormalizzatoCivico__c: '',
+            NormalizzatoIndirizzo__c: '',
+            NormalizzatoLocalita__c: '',
+            NormalizzatoAmministrativoLiv1__c: '',
+            NormalizzatoAmministrativoLiv2__c: '',
+            NormalizzatoCodiceNazione__c: '',
+            NormalizzatoCap__c: '',
+            NormalizzatoIndirizzoEsteso__c: '',
+            NormalizzatoCoordinate__Latitude__s: null,
+            NormalizzatoCoordinate__Longitude__s: null
+        }
         
         for (var i = 0; i < place.address_components.length; i++) {
             var addressType = place.address_components[i].types[0];
             if (componentForm[addressType]) {
                 var val = place.address_components[i][componentForm[addressType]];
-                component.set("v.record."+fieldMap[addressType], val);
+                record[fieldMap[addressType]] = val;
             }
         }
-        component.set("v.record.NormalizzatoIndirizzoEsteso__c", place.formatted_address);
-        component.set("v.adminAddress", place.formatted_address);
-        component.set("v.record.NormalizzatoCoordinate__Latitude__s", parseFloat(place.geometry.location.lat.toFixed(8)));
-        component.set("v.record.NormalizzatoCoordinate__Longitude__s", parseFloat(place.geometry.location.lng.toFixed(8)));
+
+        record.NormalizzatoIndirizzoEsteso__c = place.formatted_address;
+        record.NormalizzatoCoordinate__Latitude__s = parseFloat(place.geometry.location.lat.toFixed(8));
+        record.NormalizzatoCoordinate__Longitude__s = parseFloat(place.geometry.location.lng.toFixed(8));
+        component.set('v.adminAddress', place.formatted_address);
+        component.set('v.record', record);
+        helper.saveRecord(component, helper)
     },
     
-    saveRecord : function(cmp, ev, hlp){
-        var recordObj = cmp.get("v.record");
-        var recId = cmp.get("v.recordId");
-        var action = cmp.get("c.save");
+    saveRecord : function(component, helper){
+        var recordObj = component.get("v.record");
+        var recId = component.get("v.recordId");
+        var action = component.get("c.save");
         action.setParams({ jsonRec : JSON.stringify(recordObj), recordId : recId});
         action.setCallback(this, function(response){
             var status = response.getState();
             if(status === "SUCCESS"){
-                console.log('Success')
                 var result = response.getReturnValue();
                 if(result.startsWith('ERRORE')){
-                    hlp.showToast('ERROR', result, "error");
+                    helper.showToast('ERROR', result, "error");
                 } else {
-                    var compEvent = cmp.getEvent('changeAddress');
-                    compEvent.fire();
                     $A.get('e.force:refreshView').fire();
-                    hlp.showToast(status, response.getReturnValue(), "success");
+                    helper.showToast(status, response.getReturnValue(), "success");
                 }
             }
             else{
-                console.log(response.getError())
-                hlp.showToast(status, response.getError(), "error");
+                helper.showToast(status, response.getError(), "error");
             }
             $A.get("e.force:closeQuickAction").fire();
         });

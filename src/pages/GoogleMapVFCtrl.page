@@ -1,19 +1,17 @@
 <apex:page id="GoogleMapVFCtrl" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0" showHeader="false" standardStylesheets="false">
   <apex:includescript value="{!URLFOR($Resource.jQuery224)}"/>
   <html>
-    <!-- <head>
+    <head>
       <link rel="stylesheet" href="//developers.google.com/maps/documentation/javascript/demos/demos.css"/>
-    </head> -->
+    </head>
     <body>
-      
-      <div id="map"></div>
 
       <script>
         var lexOrigin = 'https://{!$CurrentPage.parameters.lcHost}';
+        var googleKey = 'AIzaSyAj979683GC95W51kD7ToRdwm4Q-J3sisE';
 
         //Data for Google map
         var data;
-        // var handlerIsActive = false;
         
         //Send message to LC
         function sendToLC(message) {
@@ -30,22 +28,14 @@
             loadScript();
           } else {
             if(typeof(JSON.parse(event.data).predictAddress) != 'undefined' && JSON.parse(event.data).predictAddress === true){
-              // if(script==undefined || script == null || !handlerIsActive){
-              //   handlerIsActive = true;
-              //   var script = document.createElement("script");
-              //   script.id = "searchAddressScript";
-              //   script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyAj979683GC95W51kD7ToRdwm4Q-J3sisE&libraries=places&callback=getPlaces";
-              //   document.getElementsByTagName("head")[0].appendChild(script);
-              // } else{
-                getPlaces();
-              // }
+              getPlaces();
             } else if(typeof(JSON.parse(event.data).geolocateAddress) != 'undefined' && JSON.parse(event.data).geolocateAddress === true){
               getGeolocalizationData();
             }
           }
         }
         
-        if(document.getElementById("searchAddressScript") == undefined ){
+        if(document.getElementById("searchAddressScript") == undefined){
           loadScript();
           window.addEventListener("message", handleEvent, false);          
         }
@@ -53,12 +43,9 @@
         function loadScript(){
           var script = document.createElement("script");
           script.id = "searchAddressScript";
-          script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyAj979683GC95W51kD7ToRdwm4Q-J3sisE&libraries=places&callback=getPlaces";
+          script.src = "https://maps.googleapis.com/maps/api/js?key="+googleKey+"&libraries=places&callback=getPlaces";
           document.getElementsByTagName("head")[0].appendChild(script);
         }
-
-        // if(!handlerIsActive)
-        //   window.addEventListener("message", handleEvent, false);
 
         function getPlaces(){
           var inputVal = data.address;
@@ -75,14 +62,12 @@
           }
 
           var service = new google.maps.places.AutocompleteService();
-          //service.getQueryPredictions({ input : inputVal, options : options }, displaySuggestions);
           service.getPlacePredictions({ input : inputVal }, displaySuggestions);
         }
 
         function getGeolocalizationData(){
           var inputVal = data.address;
-          console.log('VF Ctrl -> getGeolocalizationData() | inputVal: ', inputVal)          
-          var res = $.get("https://maps.googleapis.com/maps/api/geocode/json?place_id="+inputVal+"&key=AIzaSyAj979683GC95W51kD7ToRdwm4Q-J3sisE",
+          var res = $.get("https://maps.googleapis.com/maps/api/geocode/json?place_id="+inputVal+"&key="+googleKey+"",
             function(data, status){
               var place = data["results"];
               sendToLC({'state' : 'GEOCODED', 'place' : place})

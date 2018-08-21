@@ -5,7 +5,7 @@
     <aura:attribute name="showComponent" type="Boolean" default="false" />
     <aura:attribute name="googleMapLoaded" type="Boolean" default="false" />
     <aura:attribute name="predictions" type="String[]" />
-    <aura:attribute name="showPredictionsList" type="Boolean" default="true"/>
+    <aura:attribute name="showPredictionsList" type="Boolean" default="false"/>
     <aura:attribute name="geoaddress" type="String" />
     <aura:attribute name="geolocatedAddress" type="String" />
     <aura:attribute name="recordId" type="Id" />
@@ -13,45 +13,11 @@
     <aura:attribute name="record" Type="Object" access="global"/>
     <aura:attribute name="adminAddress" Type="String" access="global"/>
     <aura:attribute name="adminAddressFields" type="String" />
-    <aura:attribute name="normalizzatoindirizzo__c" Type="String"  access="global" default="NormalizzatoIndirizzo__c"  />
-    <aura:attribute name="normalizzatocivico__c" Type="String"  access="global" default="NormalizzatoCivico__c" />
-    <aura:attribute name="normalizzatolocalita__c" Type="String"  access="global" default="NormalizzatoLocalita__c"/>
-    <aura:attribute name="normalizzatocap__c" Type="String"  access="global" default="NormalizzatoCap__c"/>
-    <aura:attribute name="normalizzatoamministrativoliv1__c" Type="String"  access="global" default="NormalizzatoAmministrativoLiv1__c"/>
-    <aura:attribute name="normalizzatoamministrativoliv2__c" Type="String"  access="global" default="NormalizzatoAmministrativoLiv2__c"/>
-    <aura:attribute name="normalizzatocodicenazione__c" Type="String"  access="global" default="NormalizzatoCodiceNazione__c"/>
-    <aura:attribute name="normalizzatoindirizzoesteso__c" Type="String"  access="global" default="NormalizzatoIndirizzoEsteso__c"/>
-    <aura:attribute name="normalizzatocoordinate__latitude__s" Type="String"  access="global" default="NormalizzatoCoordinate__Latitude__s"/>
-    <aura:attribute name="normalizzatocoordinate__longitude__s" Type="String"  access="global" default="NormalizzatoCoordinate__Longitude__s"/>
-    <aura:attribute name="ultimotentativonormalizzazione__c" Type="String"  access="global" default="UltimoTentativoNormalizzazione__c"/>
-    <aura:attribute name="ultimanormalizzazione__c" Type="String"  access="global" default="UltimaNormalizzazione__c"/>
-    <aura:attribute name="cssStyle" type="String" />
+    <aura:attribute name="normalizedAddressFields" type="String[]" default="['BillingAddress','NormalizzatoIndirizzo__c','NormalizzatoCivico__c','NormalizzatoLocalita__c','NormalizzatoCap__c','NormalizzatoAmministrativoLiv1__c','NormalizzatoAmministrativoLiv2__c','NormalizzatoCodiceNazione__c','NormalizzatoIndirizzoEsteso__c','NormalizzatoCoordinate__Latitude__s','NormalizzatoCoordinate__Longitude__s','UltimoTentativoNormalizzazione__c','UltimaNormalizzazione__c']" />
     
-    <aura:registerEvent name="search" type="c:SearchEvt" />
-    <aura:registerEvent name="changeAddress" type="c:ChangedAddressEvt"/>
-    <aura:registerEvent name="prediction" type="c:PlacePredictionEvt" />
-    <aura:registerEvent name="geolocation" type="c:PlaceGeolocationEvt" />
-
-    <aura:handler name="prediction" type="c:PlacePredictionEvt" action="{!c.getPredictions}" phase="bubble"/>
-    <!-- <aura:handler name="geolocation" type="c:PlaceGeolocationEvt" action="{!c.handleGeolocatedAddress}" phase="capture"/> -->
-    <aura:handler name="change" value="{!v.geolocatedAddress}" action="{!c.handleGeolocatedAddress}" />
-    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
     <aura:handler name="change" value="{!v.showDialog}" action="{!c.toggleDialog}" />
-    <aura:handler event="force:refreshView" action="{!c.doInit}"/>
-    
-    <ltng:require scripts="{!$Resource.jQuery224}"/>
-    <!-- HEADER -->
-    <!--<st_yle>
-        .selectListItem :hover {
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        display: block;
-        },
-        
-        {!v.cssStyle}
-    </st_yle>-->
+    <aura:handler name="change" value="{!v.geolocatedAddress}" action="{!c.handleGeolocatedAddress}" />
+    <aura:handler name="change" value="{!v.predictions}" action="{!c.getPredictions}" />
     
     <aura:if isTrue="{!v.showComponent}">
         <div aura:id="normalizzaIndirizzoDialog" role="dialog" tabindex="-1" aria-labelledby="header43" class="">
@@ -65,6 +31,16 @@
                         <h2 class="slds-text-heading--medium">Normalizza Indirizzo</h2>
                     </div>
                 </aura:if>
+
+                <aura:if isTrue="{!not(v.googleMapLoaded)}">
+                    <div class="spinnerContainer">
+                        <lightning:spinner alternativeText="Loading" size="small" />
+                    </div>
+                    <div class="spinnerText">
+                        Loading Google Script...
+                    </div>
+                </aura:if>
+
                 <div aura:id="normalizzaIndirizzoContent" class="">
                     <lightning:layout horizontalAlign="space" multipleRows="true">
                         <lightning:layoutItem flexibility="grow" size="12" smallDeviceSize="12"  mediumDeviceSize="12" largeDeviceSize="12" padding="around-small" class="">
@@ -94,91 +70,63 @@
                                 </div>
                             </aura:if>
                             <div class="slds-size--1-of-2 slds-m-around--small framediv" style="display: none;">
-                                <c:GoogleMap aura:id="googleMapVFCtrl" address="{!v.adminAddress}" scriptLoaded="{!v.googleMapLoaded}" geolocatedAddress="{!v.geolocatedAddress}" />
+                                <c:GoogleMap aura:id="googleMapVFCtrl" address="{!v.adminAddress}" scriptLoaded="{!v.googleMapLoaded}" geolocatedAddress="{!v.geolocatedAddress}" predictedAddresses="{!v.predictions}" />
                             </div>
                         </lightning:layoutItem>
                     </lightning:layout>
                     
                     <div id="NormalizedAddressContainer" style="width: 100%; height: 588px;" onclick="{!c.dismissResults}">
-                        <lightning:layout horizontalAlign="space" multipleRows="true">
-                            
-                            <lightning:layoutItem flexibility="grow" size="12" smallDeviceSize="6"  mediumDeviceSize="6" largeDeviceSize="6" padding="around-small" class="">
-                                <lightning:button class="copyAddressBtn" label="Copia indirizzo amministrativo" onclick="{!c.copyAdminAddress}" />
-                            </lightning:layoutItem>
-                            
-                            <lightning:layoutItem flexibility="grow" size="12" smallDeviceSize="6"  mediumDeviceSize="6" largeDeviceSize="6" padding="around-small" class="">
-                                <lightning:button class="copyAddressBtn" label="Salva" onclick="{!c.saveRecord}"/>
-                            </lightning:layoutItem>
-                            
-                            <lightning:layoutItem flexibility="grow" size="12" smallDeviceSize="12"  mediumDeviceSize="12" largeDeviceSize="12" padding="around-small" class="">
-                                <ul class="slds-list--vertical slds-has-dividers--bottom-space"> <li class="slds-list__item" /> </ul>
-                            </lightning:layoutItem>
-                            
-                            <lightning:layoutItem flexibility="grow" size="12" smallDeviceSize="12"  mediumDeviceSize="8" largeDeviceSize="8" padding="horizontal-small" class="">
-                                <!-- Via -->
-                                <lightning:input label="{!v.normalizzatoindirizzo__c}" value="{!v.record.NormalizzatoIndirizzo__c}" readonly="true"/>
-                            </lightning:layoutItem>
-                            
-                            <lightning:layoutItem flexibility="grow" size="12" smallDeviceSize="12"  mediumDeviceSize="4" largeDeviceSize="4" padding="horizontal-small" class="">
-                                <!-- Civico -->
-                                <lightning:input label="{!v.normalizzatocivico__c}" value="{!v.record.NormalizzatoCivico__c}" readonly="true" onfocus=""/>
-                            </lightning:layoutItem>
-                            
-                            <lightning:layoutItem flexibility="grow" size="12" smallDeviceSize="12"  mediumDeviceSize="8" largeDeviceSize="8" padding="horizontal-small" class="">
-                                <!-- Città -->
-                                <lightning:input label="{!v.normalizzatolocalita__c}" value="{!v.record.NormalizzatoLocalita__c}" readonly="true"/>
-                            </lightning:layoutItem>
-                            
-                            <lightning:layoutItem flexibility="grow" size="12" smallDeviceSize="12"  mediumDeviceSize="4" largeDeviceSize="4" padding="horizontal-small" class="">
-                                <!-- CAP -->
-                                <lightning:input label="{!v.normalizzatocap__c}" value="{!v.record.NormalizzatoCap__c}" readonly="true"/>
-                            </lightning:layoutItem>
-                            
-                            <lightning:layoutItem flexibility="grow" size="12" smallDeviceSize="12"  mediumDeviceSize="12" largeDeviceSize="12" padding="horizontal-small" class="">
-                                <!-- Amministrativo Liv.1 -->
-                                <lightning:input label="{!v.normalizzatoamministrativoliv1__c}" value="{!v.record.NormalizzatoAmministrativoLiv1__c}" readonly="true"/>
-                            </lightning:layoutItem>
-                            
-                            <lightning:layoutItem flexibility="grow" size="12" smallDeviceSize="12"  mediumDeviceSize="12" largeDeviceSize="12" padding="horizontal-small" class="">
-                                <!-- Amministrativo Liv.2 -->
-                                <lightning:input label="{!v.normalizzatoamministrativoliv2__c}" value="{!v.record.NormalizzatoAmministrativoLiv2__c}" readonly="true"/>
-                            </lightning:layoutItem>
-                            
-                            <lightning:layoutItem flexibility="grow" size="12" smallDeviceSize="12"  mediumDeviceSize="12" largeDeviceSize="12" padding="horizontal-small" class="">
-                                <!-- Nazione -->
-                                <lightning:input label="{!v.normalizzatocodicenazione__c}" value="{!v.record.NormalizzatoCodiceNazione__c}" readonly="true"/>
-                            </lightning:layoutItem>
-                            
-                            <lightning:layoutItem flexibility="grow" size="12" smallDeviceSize="12"  mediumDeviceSize="12" largeDeviceSize="12" padding="horizontal-small" class="">
-                                <!-- Indirizzo esteso -->
-                                <lightning:input label="{!v.normalizzatoindirizzoesteso__c}" value="{!v.record.NormalizzatoIndirizzoEsteso__c}" readonly="true"/>
-                            </lightning:layoutItem>
-                            
-                            <lightning:layoutItem flexibility="grow" size="12" smallDeviceSize="12"  mediumDeviceSize="6" largeDeviceSize="6" padding="horizontal-small" class="">
-                                <!-- Latitudine -->
-                                <lightning:input label="{!v.normalizzatocoordinate__latitude__s}" value="{!v.record.NormalizzatoCoordinate__Latitude__s}" readonly="true"/>
-                            </lightning:layoutItem>
-                            
-                            <lightning:layoutItem flexibility="grow" size="6" smallDeviceSize="12"  mediumDeviceSize="6" largeDeviceSize="6" padding="horizontal-small" class="">
-                                <!-- Longitudine -->
-                                <lightning:input label="{!v.normalizzatocoordinate__longitude__s}" value="{!v.record.NormalizzatoCoordinate__Longitude__s}" readonly="true"/>
-                            </lightning:layoutItem>
-                            
-                            <lightning:layoutItem flexibility="grow" size="12" smallDeviceSize="12"  mediumDeviceSize="12" largeDeviceSize="6" padding="horizontal-small" class="">
-                                <lightning:input label="{!v.ultimotentativonormalizzazione__c}" value="{!v.record.UltimoTentativoNormalizzazione__c}" readonly="true"/>
-                            </lightning:layoutItem>
-                            
-                            <lightning:layoutItem flexibility="grow" size="12" smallDeviceSize="12"  mediumDeviceSize="12" largeDeviceSize="6" padding="horizontal-small" class="">
-                                <lightning:input label="{!v.ultimanormalizzazione__c}" value="{!v.record.UltimaNormalizzazione__c}" readonly="true"/>
-                            </lightning:layoutItem>
-                            
-                        </lightning:layout>
-                        
+                        <lightning:recordViewForm recordId="{!v.recordId}" objectApiName="{!v.sobjectType}">  
+                            <div class="slds-grid slds-wrap">
+                                <div class="slds-col slds-size_1-of-1 slds-p-bottom_xx-small slds-p-top_small slds-p-horizontal_small">
+                                    <lightning:button class="copyAddressBtn" label="Copia indirizzo amministrativo" onclick="{!c.copyAdminAddress}" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-p-bottom_xx-small slds-p-horizontal_small">
+                                    <ul class="slds-list__vertical slds-has-dividers__bottom-space"> <li class="slds-list__item" /> </ul>
+                                </div>
+                                <div class="slds-col slds-size_2-of-3 slds-p-bottom_xx-small slds-p-horizontal_small">
+                                    <lightning:outputField fieldName="NormalizzatoIndirizzo__c" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-3 slds-p-bottom_xx-small slds-p-horizontal_small">
+                                    <lightning:outputField fieldName="NormalizzatoCivico__c" />
+                                </div>
+                                <div class="slds-col slds-size_2-of-3 slds-p-bottom_xx-small slds-p-horizontal_small">
+                                    <lightning:outputField fieldName="NormalizzatoLocalita__c" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-3 slds-p-bottom_xx-small slds-p-horizontal_small">
+                                    <lightning:outputField fieldName="NormalizzatoCap__c" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-p-bottom_xx-small slds-p-horizontal_small">
+                                    <lightning:outputField fieldName="NormalizzatoAmministrativoLiv1__c" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-p-bottom_xx-small slds-p-horizontal_small">
+                                    <lightning:outputField fieldName="NormalizzatoAmministrativoLiv2__c" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-p-bottom_xx-small slds-p-horizontal_small">
+                                    <lightning:outputField fieldName="NormalizzatoCodiceNazione__c" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-p-bottom_xx-small slds-p-horizontal_small">
+                                    <lightning:outputField fieldName="NormalizzatoIndirizzoEsteso__c" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-bottom_xx-small slds-p-horizontal_small">
+                                    <lightning:outputField fieldName="NormalizzatoCoordinate__Latitude__s" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-bottom_xx-small slds-p-horizontal_small">
+                                    <lightning:outputField fieldName="NormalizzatoCoordinate__Longitude__s" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-p-bottom_xx-small slds-p-horizontal_small">
+                                    <lightning:outputField fieldName="UltimoTentativoNormalizzazione__c" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-p-bottom_xx-small slds-p-horizontal_small">
+                                    <lightning:outputField fieldName="UltimaNormalizzazione__c" />
+                                </div>
+                            </div>
+                        </lightning:recordViewForm>
                     </div>
                 </div>
                 <aura:if isTrue="{!v.showModal}">
                     <div class="slds-modal__footer">
-                        <button class="slds-button slds-button--brand" onclick="{!c.closeDialog}">Cancella</button>
+                        <button class="slds-button slds-button--brand" onclick="{!c.closeDialog}">Cancel</button>
                     </div>
                 </aura:if>
             </div>

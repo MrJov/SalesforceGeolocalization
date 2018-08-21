@@ -46,3 +46,37 @@
 .THIS .forceStyle.desktop .viewport{
     overflow: hidden !important;
 }
+
+.THIS .selectListItem :hover {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
+
+.THIS .forceStyle .viewport .oneHeader {
+    z-index: 0; 
+} 
+
+.THIS .slds-global-header_container {
+    position: static;
+} 
+
+.THIS .forceStyle.desktop .viewport{
+    overflow: hidden;
+}
+
+.THIS .spinnerContainer{
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.THIS .spinnerText{
+    padding-top: .5rem;
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+}

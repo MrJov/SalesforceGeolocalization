@@ -13,21 +13,11 @@
             }
 
             if(event.data.state == 'PREDICTED'){
-                var evt = component.getEvent("prediction");
-                if(evt != undefined){
-                    evt.setParams({ "prediction" : event.data.places });
-                    evt.fire();
-                }
+                component.set("v.predictedAddresses", event.data.places)
             }
 
             if(event.data.state == 'GEOCODED'){
-                var evt = component.getEvent("geolocation");
-                console.log('GEOCODED! '+evt)
-                if(evt != undefined){
-                    evt.setParams({ "geolocation" : event.data.place });
-                    evt.fire();
-                }
-                // component.set("v.geolocatedAddress", event.data.place)
+                component.set("v.geolocatedAddress", event.data.place)
             }
         }, false);
     },
@@ -37,8 +27,6 @@
     },
 
     geolocateAddress : function(component, event, helper){
-        console.log('GoogleMap Component -> geolocateAddress()')
-        var evt = component.getEvent("geolocation");
         helper.geolocatePlace(component, helper);
     },
 
