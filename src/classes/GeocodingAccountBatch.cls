@@ -5,7 +5,7 @@ global class GeocodingAccountBatch implements Database.Batchable<sObject>, Datab
 
     global GeocodingAccountBatch(){
         Decimal dailyLimit = GoogleMapsGeocoding__c.getOrgDefaults().DailyLimit__c;
-        query = 'SELECT Id'+String.join(adminAddressFields, ', ')+' FROM Account WHERE UltimoTentativoNormalizzazione__c = null LIMIT ' + String.valueOf(dailyLimit.intValue());
+        query = 'SELECT Id, '+String.join(adminAddressFields, ', ')+' FROM Account WHERE UltimoTentativoNormalizzazione__c = null LIMIT ' + String.valueOf(dailyLimit.intValue());
         System.debug('Batch query: ' + query);
     }
 
