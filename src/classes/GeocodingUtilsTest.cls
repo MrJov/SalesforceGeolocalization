@@ -13,18 +13,13 @@ private class GeocodingUtilsTest {
         acc2.ShippingPostalCode = '20126';
         acc2.ShippingCity = 'Milano';
         insert acc2;
-        Contact cont = new Contact(LastName='Test Cont', AccountId = acc.Id);
-        cont.MailingStreet = 'Corso Garibaldi 71';
-        cont.MailingPostalCode = '20126';
-        cont.MailingCity = 'Milano';
-        insert cont;
     }
 
     @isTest
     static void testGeocodingAccount() {
         Test.startTest();
-        GeocodingUtils.geoCodeAccount([SELECT Id FROM Account WHERE Name = 'Test Acc' LIMIT 1].Id);
-        GeocodingUtils.geoCodeAccount([SELECT Id FROM Account WHERE Name = 'Test Acc 2' LIMIT 1].Id);
+        GeocodingUtils.geoCodeObject([SELECT Id, BillingStreet, BillingCity, BillingPostalCode, BillingCountry FROM Account WHERE Name = 'Test Acc' LIMIT 1], 'Account', new String[]{'BillingStreet', 'BillingCity', 'BillingPostalCode', 'BillingCountry'});
+        GeocodingUtils.geoCodeObject([SELECT Id, ShippingStreet, ShippingCity, ShippingPostalCode FROM Account WHERE Name = 'Test Acc 2' LIMIT 1], 'Account', new String[]{'ShippingStreet', 'ShippingCity', 'ShippingPostalCode'});
         Test.stopTest();
         System.assertEquals('Milano', [SELECT NormalizzatoLocalita__c FROM Account WHERE Name = 'Test Acc' LIMIT 1].NormalizzatoLocalita__c);
         System.assertEquals('Milano', [SELECT NormalizzatoLocalita__c FROM Account WHERE Name = 'Test Acc 2' LIMIT 1].NormalizzatoLocalita__c);

@@ -6,6 +6,7 @@ public class GeocodeBeanTest {
 
     public static String getJson() {
         String json = '{'+
+                '   "status" : "OK", '+
                 '   "results" : ['+
                 '      {'+
                 '         "address_components" : ['+
@@ -56,7 +57,7 @@ public class GeocodeBeanTest {
                 '               "lat" : 45.4750687,'+
                 '               "lng" : 9.183375'+
                 '            },'+
-                '            "location_type" : "ROOFTOP",'+
+                '            "location_type" : "ROOFTOP", '+
                 '            "viewport" : {'+
                 '               "northeast" : {'+
                 '                  "lat" : 45.4764176802915,'+
@@ -72,9 +73,9 @@ public class GeocodeBeanTest {
                 '         "place_id" : "ChIJeehXskvBhkcRSbL2KbaCxJY",'+
                 '         "types" : [ "street_address" ]'+
                 '      }'+
-                '   ],'+
-                '   "status" : "OK"'+
+                '   ]'+
                 '}';
+
         return json;
     }
 
