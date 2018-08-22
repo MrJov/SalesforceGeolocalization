@@ -13,6 +13,8 @@
         <members>GeocodingUtils</members>
         <members>GeocodingUtilsTest</members>
         <members>T</members>
+        <members>U</members>
+        <members>UTest</members>
         <name>ApexClass</name>
     </types>
     <types>
