@@ -8,7 +8,7 @@
 
       <script>
         var lexOrigin = 'https://{!$CurrentPage.parameters.lcHost}';
-        var googleKey = $Setup.GoogleMapsGeocoding__c.ServerKey__c; //'AIzaSyAj979683GC95W51kD7ToRdwm4Q-J3sisE';
+        var googleKey = '{!$Setup.GoogleMapsGeocoding__c.ServerKey__c}'; //'AIzaSyAj979683GC95W51kD7ToRdwm4Q-J3sisE';
 
         //Data for Google map
         var data;
