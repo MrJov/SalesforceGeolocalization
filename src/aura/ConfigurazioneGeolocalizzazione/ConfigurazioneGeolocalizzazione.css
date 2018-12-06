@@ -1,0 +1,16 @@
+.THIS.componentBackground{
+    background-color: t(colorBackgroundAlt);
+    border-radius: t(borderRadiusMedium);
+    border: solid t(borderWidthThin) t(colorBorder);
+    box-shadow: t(shadowDropDown);
+    position: relative;
+}
+
+.THIS .warningMessage{
+    color: t(colorTextWarning);
+    display: inline-block;
+}
+
+.THIS .sectionTitle{
+    background: t(colorBackgroundRowActive);
+}

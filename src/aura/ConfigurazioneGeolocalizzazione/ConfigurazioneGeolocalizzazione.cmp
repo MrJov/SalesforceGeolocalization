@@ -1,0 +1,223 @@
+<aura:component controller="ConfigurazioneGeolocalizzazioneCtrl" implements="force:appHostable,flexipage:availableForAllPageTypes" >
+    <aura:attribute name="fields" type="String[]" default="['QualifiedApiName', 'MasterLabel', 'ObjectAPIName__c', 'GeocodingAddressFormat__c', 'StreetField__c', 'CityField__c', 'ZipcodeField__c', 'CountryField__c', 
+                                                            'NormalizedStreetField__c', 'NormalizedStreetNumberField__c', 'NormalizedCityField__c', 'NormalizedZipcodeField__c', 
+                                                            'NormalizedAdministrativeAreaLv1__c', 'NormalizedAdministrativeAreaLv2__c', 'NormalizedCountryCodeField__c', 
+                                                            'NormalizedFullAddressField__c', 'NormalizedLatitudeField__c', 'NormalizedLongitudeField__c', 'LastGeocodingAttemptDateField__c', 
+                                                            'LastGeocodingDateField__c', 'GeocodingStatusField__c']" /> 
+    <aura:attribute name="configurations" type="List" />
+    <aura:attribute name="selectedConfigurationName" type="String" default="" />
+    <aura:attribute name="selectedConfiguration" type="Object" />
+    <aura:attribute name="isNew" type="Boolean" default="false" />
+    <aura:attribute name="subscriptionProblems" type="Boolean" default="false" />
+
+    <aura:attribute name="addressFormats" type="Object[]" />
+    <aura:attribute name="booleanFields" type="Object[]" />
+    <aura:attribute name="dateTimeFields" type="Object[]" />
+    <aura:attribute name="textFields" type="Object[]" />
+    <aura:attribute name="integerFields" type="Object[]" />
+    <aura:attribute name="doubleFields" type="Object[]" />
+
+    <aura:attribute name="notifications" type="Object[]" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+
+    <lightning:empApi aura:id="empApi"/>
+    <aura:attribute name="channel" type="String" default="/event/GeolocationMetadataDeploy__e"/>
+    <aura:attribute name="subscription" type="Map"/>
+
+    <div class="slds-grid slds-wrap slds-p-around_medium componentBackground">
+
+        <div class="slds-col slds-size_1-of-1 slds-p-bottom_medium">
+            <aura:if isTrue="{!v.subscriptionProblems}">
+                <lightning:icon iconName="utility:warning" class="" alternativeText="Warning!" variant="warning"/>
+                <div class="warningMessage slds-p-left_medium slds-p-right_medium">
+                    There are problems retrieving the configuration deployment result. You can try to reconnect to the service or continue with the configuration and check later for the result reloading the page.
+                </div>
+                <lightning:button aura:id="saveBtn" class="" variant="neutral" label="Try to reconnect" onclick="{!c.subscribe}"/>
+            </aura:if>
+        </div>
+
+        <!-- SELECT THE CONFIGURATION TO EDIT -->
+        <div class="slds-col slds-size_1-of-4 slds-p-bottom_small" >
+            <lightning:select aura:id="selectConfiguration" name="selectConfiguration" label="Select the geolocation configuration" value="{!v.selectedConfigurationName}" onchange="{!c.changeConfiguration}">
+                <option value="" text="---"></option>
+                <aura:iteration items="{!v.configurations}" var="configuration"> 
+                    <option value="{!configuration.QualifiedApiName}" text="{!configuration.MasterLabel}"></option>
+                </aura:iteration> 
+            </lightning:select>
+        </div>
+
+        <div class="slds-col slds-size_1-of-4 slds-p-around_medium" style="padding-top: 1.4rem">
+            <lightning:button aura:id="saveBtn" class="" variant="neutral" label="New" onclick="{!c.new}"/>
+            <aura:if isTrue="{!not(empty(v.selectedConfiguration))}">
+                <lightning:button aura:id="saveBtn" class="" variant="neutral" label="Save" onclick="{!c.save}"/>
+            </aura:if>
+        </div>
+
+        <aura:if isTrue="{!not(empty(v.selectedConfiguration))}">
+            <div class="slds-col slds-size_1-of-1">
+                <div class="slds-text-heading_medium">
+                    Edit geolocalization configuration
+                </div>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-p-bottom_medium" >
+                <div class="slds-grid slds-wrap slds-grid_pull-padded slds-p-around_x-small" >
+                    <div class="slds-col slds-size_1-of-1 slds-p-around_xx-small slds-text-title_caps sectionTitle" >
+                        General information
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:input label="Label" name="MasterLabel" value="{!v.selectedConfiguration.MasterLabel}" readonly="{!not(v.isNew)}" />
+                    </div>
+                    <div class="slds-col slds-size_3-of-4 slds-p-around_xx-small slds-p-left_medium">
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:input label="Object" name="ObjectAPIName" value="{!v.selectedConfiguration.ObjectAPIName__c}" readonly="{!not(v.isNew)}" onchange="{!c.changeObject}" />
+                    </div>
+                    <div class="slds-col slds-size_3-of-4 slds-p-around_xx-small slds-p-left_medium">
+                    </div>
+                    
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Last geolocation attempt date" name="LastGeocodingAttemptDateField__c" value="{!v.selectedConfiguration.LastGeocodingAttemptDateField__c}" >
+                            <aura:iteration items="{!v.dateTimeFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.LastGeocodingAttemptDateField__c}"/>
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Last geolocation succes date" name="LastGeocodingDateField__c" value="{!v.selectedConfiguration.LastGeocodingDateField__c}" >
+                            <aura:iteration items="{!v.dateTimeFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.LastGeocodingDateField__c}"/>
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Last geolocation status" name="GeocodingStatusField__c" value="{!v.selectedConfiguration.GeocodingStatusField__c}" >
+                            <aura:iteration items="{!v.textFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.GeocodingStatusField__c}"/>
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Select the geolocation address format" name="GeocodingAddressFormat__c" value="{!v.selectedConfiguration.GeocodingAddressFormat__c}" >
+                            <aura:iteration items="{!v.addressFormats}" var="format">
+                                <option value="{!format.name}" text="{!format.label}" selected="{!format.name == v.selectedConfiguration.GeocodingAddressFormat__c}"/>
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+
+
+                    <div class="slds-col slds-size_1-of-1 slds-p-around_xx-small slds-m-top_small slds-text-title_caps sectionTitle" >
+                        Original address details
+                    </div>
+
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Street" name="StreetField__c" value="{!v.selectedConfiguration.StreetField__c}" >
+                            <aura:iteration items="{!v.textFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.StreetField__c}"/>
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="City" name="CityField__c" value="{!v.selectedConfiguration.CityField__c}" >
+                            <aura:iteration items="{!v.textFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.CityField__c}"/>
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Postal code" name="ZipcodeField__c" value="{!v.selectedConfiguration.ZipcodeField__c}" >
+                            <aura:iteration items="{!v.textFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.ZipcodeField__c}"/>
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Country" name="CountryField__c" value="{!v.selectedConfiguration.CountryField__c}" >
+                            <aura:iteration items="{!v.textFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.CountryField__c}"/>
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+
+
+
+                    <div class="slds-col slds-size_1-of-1 slds-p-around_xx-small slds-m-top_small slds-text-title_caps sectionTitle" >
+                        Normalized address details
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Normalized street" name="NormalizedStreetField__c" value="{!v.selectedConfiguration.NormalizedStreetField__c}" >
+                            <aura:iteration items="{!v.textFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.NormalizedStreetField__c}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Normalized street number" name="NormalizedStreetNumberField__c" value="{!v.selectedConfiguration.NormalizedStreetNumberField__c}" >
+                            <aura:iteration items="{!v.textFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.NormalizedStreetNumberField__c}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Normalized city" name="NormalizedCityField__c" value="{!v.selectedConfiguration.NormalizedCityField__c}" >
+                            <aura:iteration items="{!v.textFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.NormalizedCityField__c}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Normalized postal code" name="NormalizedZipcodeField__c" value="{!v.selectedConfiguration.NormalizedZipcodeField__c}" >
+                            <aura:iteration items="{!v.textFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.NormalizedZipcodeField__c}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Normalized administrative area (lv. 1)" name="NormalizedAdministrativeAreaLv1__c" value="{!v.selectedConfiguration.NormalizedAdministrativeAreaLv1__c}" >
+                            <aura:iteration items="{!v.textFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.NormalizedAdministrativeAreaLv1__c}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Normalized administrative area (lv. 2)" name="NormalizedAdministrativeAreaLv2__c" value="{!v.selectedConfiguration.NormalizedAdministrativeAreaLv2__c}" >
+                            <aura:iteration items="{!v.textFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.NormalizedAdministrativeAreaLv2__c}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Normalized country code" name="NormalizedCountryCodeField__c" value="{!v.selectedConfiguration.NormalizedCountryCodeField__c}" >
+                            <aura:iteration items="{!v.textFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.NormalizedCountryCodeField__c}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Normalized full address" name="NormalizedFullAddressField__c" value="{!v.selectedConfiguration.NormalizedFullAddressField__c}" >
+                            <aura:iteration items="{!v.textFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.NormalizedFullAddressField__c}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Normalized latitude" name="NormalizedLatitudeField__c" value="{!v.selectedConfiguration.NormalizedLatitudeField__c}" >
+                            <aura:iteration items="{!v.doubleFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.NormalizedLatitudeField__c}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-p-around_xx-small slds-p-left_medium">
+                        <lightning:select label="Normalized longitude" name="NormalizedLongitudeField__c" value="{!v.selectedConfiguration.NormalizedLongitudeField__c}" >
+                            <aura:iteration items="{!v.doubleFields}" var="field">
+                                <option value="{!field.name}" text="{!field.label}" selected="{!field.name == v.selectedConfiguration.NormalizedLongitudeField__c}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                </div>
+            </div>
+        </aura:if>
+    </div>
+    
+</aura:component>

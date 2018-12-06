@@ -1,0 +1,4 @@
+<aura:tokens extends="force:base">
+    <!-- custom tokens here -->
+    <aura:token name="colorTextWarning" value="#ffb75d" />
+</aura:tokens>
